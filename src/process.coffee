@@ -3,7 +3,7 @@ net = require 'net'
 {spawn} = require 'child_process'
 
 class Process
-  constructor: (@name, @command) ->
+  constructor: (@name, @command, @cwd) ->
 
   spawn: ->
     @port = getOpenPort()
@@ -15,7 +15,7 @@ class Process
     env['PORT'] = @port
     env['PS']   = "#{@name}.1"
 
-    @child = spawn '/bin/sh', ['-c', @command], {env}
+    @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
 
     @child.stdout.pipe process.stdout, end: false
     @child.stderr.pipe process.stderr, end: false

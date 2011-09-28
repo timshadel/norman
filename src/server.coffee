@@ -1,16 +1,19 @@
 {readFile} = require 'fs'
+{dirname}  = require 'path'
 
 {createProcess} = require './process'
 
 class Server
   constructor: (@procfile, callback) ->
+    @cwd = dirname @procfile
+
     @processes = {}
 
     readFile @procfile, 'utf-8', (err, data) =>
       for line in data.split "\n"
         [name, command] = line.split /\s*:\s+/, 2
         continue if name is ''
-        @processes[name] = createProcess name, command
+        @processes[name] = createProcess name, command, @cwd
       callback this
 
   spawn: (name) ->
