@@ -1,0 +1,8 @@
+{ "name": "nack"
+, "description": "Node Procfile server"
+, "version": "0.1.0"
+, "main": "./lib"
+, "devDependencies" :
+  { "coffee-script" : ">= 1.0.0"
+  }
+}

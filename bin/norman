@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+var norman = require('..');
+
+var procfile = process.argv[2];
+
+norman.createServer(procfile, function(server) {
+  server.spawn();
+});
