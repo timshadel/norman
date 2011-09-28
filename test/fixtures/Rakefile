@@ -1,0 +1,17 @@
+namespace :resque do
+  task :work do
+    i = 0
+    loop do
+      warn "Processing Job ##{i}"
+      i += 1
+      sleep 5
+    end
+  end
+
+  task :scheduler do
+    loop do
+      warn "Scheduling Jobs"
+      sleep 30
+    end
+  end
+end
