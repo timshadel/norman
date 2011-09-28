@@ -15,6 +15,7 @@ class Process
     env['PORT'] = @port
     env['PS']   = "#{@name}.1"
 
+    console.error "#{@name}.1 (#{@port}): #{@command}"
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
 
     @child.stdout.pipe process.stdout, end: false
