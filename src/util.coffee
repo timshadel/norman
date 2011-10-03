@@ -4,9 +4,11 @@ exports.clone = (obj) ->
   if not obj? or typeof obj isnt 'object'
     return obj
 
-  newInstance = new obj.constructor()
+  # process.env has no constructor...
+  constructor = obj.constructor ? Object.constructor
+  newInstance = new constructor()
 
   for key of obj
-    newInstance[key] = clone obj[key]
+    newInstance[key] = exports.clone obj[key]
 
   return newInstance
