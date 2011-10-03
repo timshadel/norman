@@ -1,3 +1,3 @@
-{createServer} = require './server'
+{createFormation} = require './formation'
 
-exports.createServer = createServer
+exports.createFormation = createFormation

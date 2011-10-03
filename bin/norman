@@ -4,6 +4,8 @@ var norman = require('..');
 
 var procfile = process.argv[2];
 
-norman.createServer(procfile, function(server) {
-  server.spawn();
+var concurrency = process.argv[4];
+
+norman.createFormation(procfile, function(formation) {
+  formation.scale(concurrency);
 });
