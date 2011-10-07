@@ -50,5 +50,23 @@ exports.testSpawnWeb = (test) ->
       process.kill()
     req.end()
 
+  process.on 'error', (err) ->
+    test.ifError err
+    process.kill()
+
+  process.child.on 'exit', ->
+    test.done()
+
+exports.testSpawnTimeout = (test) ->
+  test.expect 1
+
+  process = createProcess 'web', "sleep 3", "#{__dirname}/fixtures/app"
+  process.timeout = 1000
+  process.spawn()
+
+  process.on 'error', (err) ->
+    test.ok err
+    process.kill()
+
   process.child.on 'exit', ->
     test.done()

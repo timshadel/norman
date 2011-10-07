@@ -38,25 +38,43 @@ class Process extends EventEmitter
       callback?()
 
 class WebProcess extends Process
+  timeout: 30000
+
   spawn: ->
     @port = getOpenPort()
 
     super
 
-    tryConnect @port, (err) =>
-      unless err
+    tryConnect @port, @timeout, (err) =>
+      if err
+        @emit 'error', err
+      else
         @emit 'ready'
 
-tryConnect = (port, callback) ->
+tryConnect = (port, timeout, callback) ->
+  decay = 100
+  timedOut = false
+  timeoutId = setTimeout (-> timedOut = true), timeout
+
   socket = new net.Socket
+
   socket.on 'connect', ->
+    clearTimeout timeoutId
     socket.destroy()
     callback()
+
   socket.on 'error', (err) ->
-    if err.code is 'ECONNREFUSED'
-      socket.connect port
-    else
+    if timedOut
+      clearTimeout timeoutId
       callback err
+    else if err.code is 'ECONNREFUSED'
+      setTimeout ->
+        socket.connect port
+      , decay *= 2
+    else
+      clearTimeout timeoutId
+      callback err
+
   socket.connect port
 
 getOpenPort = ->
