@@ -15,6 +15,27 @@ class Process
 
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
 
+  kill: (callback) ->
+    if @child
+      @child.once 'exit', callback if callback
+      @child.kill 'SIGKILL'
+    else
+      callback?()
+
+  terminate: (callback) ->
+    if @child
+      @child.once 'exit', callback if callback
+      @child.kill 'SIGTERM'
+    else
+      callback?()
+
+  quit: (callback) ->
+    if @child
+      @child.once 'exit', callback if callback
+      @child.kill 'SIGQUIT'
+    else
+      callback?()
+
 class WebProcess extends Process
   spawn: ->
     @port = getOpenPort()
