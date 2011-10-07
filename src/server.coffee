@@ -1,6 +1,7 @@
 {readFile} = require 'fs'
 {dirname}  = require 'path'
 
+{parseProcfile} = require './procfile'
 {createProcess} = require './process'
 
 class Server
@@ -9,10 +10,8 @@ class Server
 
     @processes = {}
 
-    readFile @procfile, 'utf-8', (err, data) =>
-      for line in data.split "\n"
-        [name, command] = line.split /\s*:\s+/, 2
-        continue if name is ''
+    parseProcfile @procfile, (err, procfile) =>
+      for name, command of procfile
         @processes[name] = createProcess name, command, @cwd
       callback this
 
