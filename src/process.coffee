@@ -1,8 +1,9 @@
 net = require 'net'
 
+{EventEmitter} = require 'events'
 {spawn} = require 'child_process'
 
-class Process
+class Process extends EventEmitter
   constructor: (@name, @command, @cwd) ->
 
   spawn: ->
@@ -41,6 +42,22 @@ class WebProcess extends Process
     @port = getOpenPort()
 
     super
+
+    tryConnect @port, (err) =>
+      unless err
+        @emit 'ready'
+
+tryConnect = (port, callback) ->
+  socket = new net.Socket
+  socket.on 'connect', ->
+    socket.destroy()
+    callback()
+  socket.on 'error', (err) ->
+    if err.code is 'ECONNREFUSED'
+      socket.connect port
+    else
+      callback err
+  socket.connect port
 
 getOpenPort = ->
   server = net.createServer()

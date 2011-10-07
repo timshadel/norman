@@ -1,3 +1,5 @@
+http = require 'http'
+
 {createProcess} = require '../lib/process'
 
 spawnTicker = ->
@@ -33,4 +35,20 @@ exports.testQuit = (test) ->
   process = spawnTicker()
   process.quit ->
     test.ok true
+    test.done()
+
+exports.testSpawnWeb = (test) ->
+  test.expect 2
+
+  process = createProcess 'web', "bundle exec thin start -p $PORT", "#{__dirname}/fixtures/app"
+  process.spawn()
+  test.ok process.port
+
+  process.on 'ready', ->
+    req = http.request host: '127.0.0.1', port: process.port, (res) ->
+      test.same 200, res.statusCode
+      process.kill()
+    req.end()
+
+  process.child.on 'exit', ->
     test.done()
