@@ -6,20 +6,24 @@ class Process
   constructor: (@name, @command, @cwd) ->
 
   spawn: ->
-    @port = getOpenPort()
-
     env = {}
     for key, value of process.env
       env[key] = value
 
-    env['PORT'] = @port
+    env['PORT'] = @port if @port
     env['PS']   = "#{@name}.1"
 
-    console.error "#{@name}.1 (#{@port}): #{@command}"
+    console.error "#{@name}.1: #{@command}"
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
 
     @child.stdout.pipe process.stdout, end: false
     @child.stderr.pipe process.stderr, end: false
+
+class WebProcess extends Process
+  spawn: ->
+    @port = getOpenPort()
+
+    super
 
 getOpenPort = ->
   server = net.createServer()
@@ -28,5 +32,8 @@ getOpenPort = ->
   server.close()
   port
 
-exports.createProcess = (args...) ->
-  new Process args...
+exports.createProcess = (name, args...) ->
+  if name is 'web'
+    new WebProcess name, args...
+  else
+    new Process name, args...
