@@ -22,6 +22,9 @@ class Server
       proc.spawn()
       proc.child.stdout.pipe process.stdout, end: false
       proc.child.stderr.pipe process.stderr, end: false
+
+      proc.on 'ready', ->
+        console.error "#{proc.name}.1: ready on #{proc.port}"
     else
       for name of @processes
         @spawn name
