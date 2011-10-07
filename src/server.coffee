@@ -17,10 +17,14 @@ class Server
 
   spawn: (name) ->
     if name
-      @processes[name].spawn()
+      proc = @processes[name]
+      console.error "#{proc.name}.1: #{proc.command}"
+      proc.spawn()
+      proc.child.stdout.pipe process.stdout, end: false
+      proc.child.stderr.pipe process.stderr, end: false
     else
-      for name, process of @processes
-        process.spawn()
+      for name of @processes
+        @spawn name
 
 exports.createServer = (args...) ->
   new Server args...

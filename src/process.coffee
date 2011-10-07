@@ -13,11 +13,7 @@ class Process
     env['PORT'] = @port if @port
     env['PS']   = "#{@name}.1"
 
-    console.error "#{@name}.1: #{@command}"
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
-
-    @child.stdout.pipe process.stdout, end: false
-    @child.stderr.pipe process.stderr, end: false
 
 class WebProcess extends Process
   spawn: ->
