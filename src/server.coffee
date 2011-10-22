@@ -12,7 +12,7 @@ class Server
 
     parseProcfile @procfile, (err, procfile) =>
       for name, command of procfile
-        @processes[name] = createProcess name, command, @cwd
+        @processes[name] = createProcess name, command, cwd: @cwd
       callback this
 
   spawn: (name) ->
