@@ -3,14 +3,14 @@ http = require 'http'
 {createProcess} = require '../lib/process'
 
 spawnTicker = ->
-  process = createProcess 'ticker', "ruby ./ticker", "#{__dirname}/fixtures/example"
+  process = createProcess 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
   process.spawn()
   process
 
 exports.testSpawn = (test) ->
   test.expect 0
 
-  process = createProcess 'ticker', "ruby ./ticker", "#{__dirname}/fixtures/example"
+  process = createProcess 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
   process.spawn()
 
   process.kill ->
@@ -40,7 +40,7 @@ exports.testQuit = (test) ->
 exports.testSpawnWeb = (test) ->
   test.expect 2
 
-  process = createProcess 'web', "bundle exec thin start -p $PORT", "#{__dirname}/fixtures/app"
+  process = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
   process.spawn()
   test.ok process.port
 
@@ -60,7 +60,7 @@ exports.testSpawnWeb = (test) ->
 exports.testSpawnTimeout = (test) ->
   test.expect 1
 
-  process = createProcess 'web', "sleep 3", "#{__dirname}/fixtures/app"
+  process = createProcess 'web', "sleep 3", cwd: "#{__dirname}/fixtures/app"
   process.timeout = 1000
   process.spawn()
 

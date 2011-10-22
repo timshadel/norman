@@ -4,7 +4,8 @@ net = require 'net'
 {spawn} = require 'child_process'
 
 class Process extends EventEmitter
-  constructor: (@name, @command, @cwd) ->
+  constructor: (@name, @command, options = {}) ->
+    @cwd = options.cwd
 
   spawn: ->
     env = {}
