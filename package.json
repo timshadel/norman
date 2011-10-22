@@ -2,6 +2,7 @@
 , "description": "Node Procfile server"
 , "version": "0.1.0"
 , "main": "./lib"
+, "bin" : "./bin/norman"
 , "dependencies" :
   { "async" : ">= 0.1.0"
   }
