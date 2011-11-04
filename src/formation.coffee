@@ -1,48 +1,45 @@
-{readFile}  = require 'fs'
-path        = require 'path'
+{readFile}       = require 'fs'
+{basename, dirname, join}  = require 'path'
 
 {createProcType} = require './proctype'
-{clone}          = require './util'
 
 class Formation
   constructor: (@procfile, callback) ->
-    @cwd = path.dirname @procfile
-    envPath = path.join(@cwd, '.env')
-    
+    @cwd = dirname @procfile
+    @appName = basename @cwd
     @proctypes = {}
-    @env = clone process.env
-    
-    readEnvFile = (next) =>
-      readFile envPath, 'utf-8', (err, data) =>
-        for line in data.split "\n"
-          [name, value] = line.split '=', 2
-          continue if name is ''
-          @env[name] = value
-        next()
-    
-    readProcfile = (next) =>
-      readFile @procfile, 'utf-8', (err, data) =>
-        for line in data.split "\n"
-          [name, command] = line.split /\s*:\s+/, 2
-          continue if name is ''
-          @proctypes[name] = createProcType name, command, @cwd, @env
-        next()
-    
-    path.exists envPath, (exists) =>
-      if exists
-        readEnvFile =>
-          readProcfile =>
-            callback(this)
-      else
-        readProcfile =>
-          callback(this)
+    @env = {}
+    for key, value of process.env
+      @env[key] = value
+      
+    @loadEnv =>
+      @loadProcfile =>
+        callback(this)
   
   scale: (concurrency = 'web=1') ->
     for pair in concurrency.split ','
       [name, count] = pair.split '=', 2
       continue if name is ''
       @proctypes[name].scale(count)
-  
 
+
+  loadEnv: (next) ->
+    readFile join(@cwd, '.env'), 'utf-8', (err, data) =>
+      next() if err
+      for line in data.split "\n"
+        [name, value] = line.split '=', 2
+        continue if name is ''
+        @env[name] = value
+      next()
+
+  loadProcfile: (next) ->
+    readFile @procfile, 'utf-8', (err, data) =>
+      for line in data.split "\n"
+        [name, command] = line.split /\s*:\s+/, 2
+        continue if name is ''
+        @proctypes[name] = createProcType name, command, @cwd, @appName, @env
+      next()
+
+  
 exports.createFormation = (args...) ->
   new Formation args...
