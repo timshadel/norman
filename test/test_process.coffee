@@ -41,6 +41,7 @@ exports.testSpawnWeb = (test) ->
   test.expect 2
 
   process = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
+  process.timeout = 3000
   process.spawn()
   test.ok process.port
 

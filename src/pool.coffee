@@ -6,16 +6,16 @@ async = require 'async'
 
 class Pool extends EventEmitter
   constructor: (@name, @command, options = {}) ->
-    i = @concurrency = options.concurrency ? 1
+    @concurrency = options.concurrency ? 1
 
     @processes = []
-    while i > 0
-      @processes.push createProcess @name, @command, options
-      i--
+    for instance in [1..@concurrency]
+      @processes.push createProcess "#{@name}.#{instance}", @command, options
 
   spawn: ->
     for process in @processes
       process.spawn()
+      @emit 'process:spawn', process
 
   kill: (callback) ->
     kill = (process, cb) -> process.kill cb

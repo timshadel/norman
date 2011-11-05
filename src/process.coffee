@@ -86,7 +86,7 @@ getOpenPort = ->
   port
 
 exports.createProcess = (name, args...) ->
-  if name is 'web'
+  if name.match /^web/
     new WebProcess name, args...
   else
     new Process name, args...
