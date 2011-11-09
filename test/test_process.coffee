@@ -2,6 +2,9 @@ http = require 'http'
 
 {createProcess} = require '../lib/process'
 
+{setUp} = require './fixtures'
+exports.setUp = setUp
+
 spawnTicker = ->
   process = createProcess 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
   process.spawn()

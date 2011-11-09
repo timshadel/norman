@@ -1,5 +1,8 @@
 {parseProcfile} = require '../lib/procfile'
 
+{setUp} = require './fixtures'
+exports.setUp = setUp
+
 exports.testParseAppProcfile = (test) ->
   test.expect 4
   parseProcfile "#{__dirname}/fixtures/app/Procfile", (err, procfile) ->

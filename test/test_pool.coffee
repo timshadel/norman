@@ -2,6 +2,9 @@ http = require 'http'
 
 {createPool} = require '../lib/pool'
 
+{setUp} = require './fixtures'
+exports.setUp = setUp
+
 spawnTicker = ->
   pool = createPool 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
   pool.spawn()
@@ -60,7 +63,7 @@ exports.testWebPool = (test) ->
     if completedRequests >= 2
       clearTimeout timeoutId
       pool.kill -> test.done()
-  
+
   pool.on 'process:spawn', (process) ->
     test.ok process.port
 
