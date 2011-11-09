@@ -1,7 +1,7 @@
 {parseProcfile} = require '../lib/procfile'
 
-{setUp} = require './fixtures'
-exports.setUp = setUp
+{setupFixtures} = require './fixtures'
+exports.setUp = setupFixtures
 
 exports.testParseAppProcfile = (test) ->
   test.expect 4

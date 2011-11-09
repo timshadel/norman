@@ -2,13 +2,14 @@
 
 complete = false
 
-exports.setUp = (callback) ->
+exports.setupFixtures = (callback) ->
   if complete
     callback()
   else
-    bundleInstall "#{__dirname}/fixtures/app/Gemfile", (err) ->
-      complete = !err
-      callback err
+    bundleInstall "#{__dirname}/app/Gemfile", (err) ->
+      throw err if err
+      complete = true
+      callback()
 
 bundleInstall = (gemfile, callback) ->
   env = {}

@@ -2,8 +2,8 @@ http = require 'http'
 
 {createPool} = require '../lib/pool'
 
-{setUp} = require './fixtures'
-exports.setUp = setUp
+{setupFixtures} = require './fixtures'
+exports.setUp = setupFixtures
 
 spawnTicker = ->
   pool = createPool 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
