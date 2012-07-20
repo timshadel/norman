@@ -13,9 +13,12 @@ class Process extends EventEmitter
       env[key] = value
 
     env['PORT'] = @port if @port
-    env['PS']   = "#{@name}.1"
+    env['PS']   = @name
 
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
+
+    @stdout = @child.stdout
+    @stderr = @child.stderr
 
   kill: (callback) ->
     if @child

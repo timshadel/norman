@@ -9,6 +9,6 @@ $stdout.sync = true
 end
 
 while true
-  puts "tick: #{ARGV.inspect} -- FOO:#{ENV["FOO"]}"
+  puts "tick: #{ARGV.inspect} -- FOO:#{ENV["FOO"]} -- PS:#{ENV["PS"]}"
   sleep 1
 end

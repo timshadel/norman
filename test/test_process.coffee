@@ -19,6 +19,18 @@ exports.testSpawn = (test) ->
   process.kill ->
     test.done()
 
+exports.testProcessName = (test) ->
+  test.expect 1
+
+  process = createProcess 'namer.7', "echo $PS"
+  process.spawn()
+
+  process.stdout.on 'data', (data) ->
+    processName = data.toString().trim()
+    test.same processName, 'namer.7'
+    process.kill ->
+      test.done()
+
 exports.testKill = (test) ->
   test.expect 1
   process = spawnTicker()
