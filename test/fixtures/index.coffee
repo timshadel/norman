@@ -20,6 +20,9 @@ bundleInstall = (gemfile, callback) ->
 
   exec "bundle check", {env}, (err) ->
     if err
-      exec "bundle install", {env}, callback
+      console.error "Installing bundle for #{gemfile}"
+      exec "bundle install", {env}, (err) ->
+        console.error "...done"
+        callback(err)
     else
       callback err
