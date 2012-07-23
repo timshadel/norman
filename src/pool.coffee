@@ -5,6 +5,7 @@
 async = require 'async'
 
 class Pool extends EventEmitter
+
   constructor: (@name, @command, options = {}) ->
     @concurrency = options.concurrency ? 1
 
@@ -13,9 +14,20 @@ class Pool extends EventEmitter
       @processes.push createProcess "#{@name}.#{instance}", @command, options
 
   spawn: ->
+    waiting = []
+    spawned = false
     for process in @processes
+      waiting.push process
+      process.on 'ready', ->
+        index = waiting.indexOf(process)
+        waiting.splice(index, 1)
+        @emit 'pool:ready' if spawned and waiting.length is 0
+        
       process.spawn()
       @emit 'process:spawn', process
+
+    spawned = true
+    @emit 'pool:ready' if waiting.length is 0
 
   kill: (callback) ->
     kill = (process, cb) -> process.kill cb

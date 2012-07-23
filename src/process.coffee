@@ -1,11 +1,19 @@
-net = require 'net'
+net      = require 'net'
+color    = require("ansi-color").set
+strftime = require 'strftime'
+sprintf  = require('sprintf').sprintf
 
 {EventEmitter} = require 'events'
-{spawn} = require 'child_process'
+{spawn}        = require 'child_process'
+
+{LineBuffer, PrependingBuffer}   = require './streams'
 
 class Process extends EventEmitter
+
   constructor: (@name, @command, options = {}) ->
-    @cwd = options.cwd
+    @cwd   = options.cwd
+    @pad   = options.pad ? 6
+    @color = options.color
 
   spawn: ->
     env = {}
@@ -15,10 +23,20 @@ class Process extends EventEmitter
     env['PORT'] = @port if @port
     env['PS']   = @name
 
-    @child = spawn '/bin/sh', ['-c', @command], {env, @cwd}
+    @child = spawn '/bin/sh', ['-c', @command], {env, @cwd, stdio: 'pipe'}
 
-    @stdout = @child.stdout
-    @stderr = @child.stderr
+    format = "%-#{@pad}s"
+    message = "#{strftime("%H:%M:%S")} #{sprintf(format, @name)} | "
+    message = color(message, @color) if @color?
+    @out = new PrependingBuffer message
+
+    @child.stdout.pipe(new LineBuffer()).pipe @out
+    @child.stderr.pipe(new LineBuffer()).pipe @out
+
+    @spawned()
+
+  spawned: ->
+    @emit 'ready'
 
   kill: (callback) ->
     if @child
@@ -46,14 +64,15 @@ class WebProcess extends Process
 
   spawn: ->
     @port = getOpenPort()
-
     super
 
+  spawned: ->
     tryConnect @port, @timeout, (err) =>
       if err
         @emit 'error', err
       else
         @emit 'ready'
+
 
 tryConnect = (port, timeout, callback) ->
   decay = 100

@@ -5,6 +5,9 @@
 , "bin" : "./bin/norman"
 , "dependencies" :
   { "async" : ">= 0.1.0"
+  , "ansi-color" : "0.2.1"
+  , "strftime": "0.4.x"
+  , "sprintf" : "0.1.x"
   }
 , "devDependencies" :
   { "coffee-script" : ">= 1.1.0"

@@ -1,31 +1,18 @@
 {readFile} = require 'fs'
 {dirname}  = require 'path'
 
-{parseProcfile} = require './procfile'
-{createPool}    = require './pool'
+{parseProcfile}   = require './procfile'
+{createFormation} = require './formation'
 
 class Server
   constructor: (@procfile, callback) ->
     @cwd = dirname @procfile
 
-    @pools = {}
-
-    parseProcfile @procfile, (err, procfile) =>
-      for name, command of procfile
-        @pools[name] = createPool name, command, cwd: @cwd
-      callback this
-
-  spawn: ->
-    for name, pool of @pools
-      pool.on 'process:spawn', (proc) ->
-        console.error "#{proc.name}: #{proc.command}"
-        proc.child.stdout.pipe process.stdout, end: false
-        proc.child.stderr.pipe process.stderr, end: false
-
-        proc.on 'ready', ->
-          console.error "#{proc.name}: ready on #{proc.port}"
-
-      pool.spawn()
+    parseProcfile @procfile, (err, details) =>
+      return callback(err) if err
+      @formation = createFormation details, {@cwd}
+      @formation.spawn()
+      callback
 
 exports.createServer = (args...) ->
   new Server args...

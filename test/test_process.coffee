@@ -22,12 +22,14 @@ exports.testSpawn = (test) ->
 exports.testProcessName = (test) ->
   test.expect 1
 
-  process = createProcess 'namer.7', "echo $PS"
+  procName = 'namer.7'
+  process = createProcess procName, "echo $PS", {pad: 10}
   process.spawn()
 
-  process.stdout.on 'data', (data) ->
-    processName = data.toString().trim()
-    test.same processName, 'namer.7'
+  process.out.on 'data', (data) ->
+    output = data.toString().trim()
+    matcher = "[0-9:]{8} #{procName} *| #{procName}"
+    test.ok output.match(matcher)
     process.kill ->
       test.done()
 
