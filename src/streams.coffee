@@ -1,4 +1,25 @@
-{Stream, WritableStream} = require 'stream'
+{Stream} = require 'stream'
+
+# **ForwardingStream** simply pushes events through it. It can act like
+# an aggregator since any number of streams may call 'pipe' on it.
+#
+class ForwardingStream extends Stream
+  constructor: ->
+    @writable = true
+    @readable = true
+
+  write: (chunk) ->
+    @emit 'data', chunk
+
+  ended: ->
+    @emit 'end'
+
+  end: (args...) ->
+    if args.length > 0
+      @write args...
+
+    @ended()
+
 
 # **LineBuffer** wraps any readable stream and buffers data until
 # it encounters a `\n` line break. It will emit `data` events as lines
@@ -11,14 +32,10 @@
 #       if line.match "TO: "
 #         console.log line
 #
-class LineBuffer extends Stream
+class LineBuffer extends ForwardingStream
   constructor: ->
-    @readable = true
+    super
     @_buffer = ""
-
-    @on 'pipe', (src) =>
-      src.on 'data', (args...) => @write args...
-      src.on 'end',  (args...) => @end args...
 
   write: (chunk) ->
     @_buffer += chunk
@@ -30,54 +47,22 @@ class LineBuffer extends Stream
       # Emit `data` line as a single line
       @emit 'data', line
 
-  end: (args...) ->
-    if args.length > 0
-      @write args...
-
+  ended: ->
     if @_buffer.length > 0
       @emit 'data', @_buffer
-
-    @emit 'end'
+    super
 
 
 # **PrependingBuffer** adds the output of a function to the beginning of
 # each data segment emitted by the underlying stream.
 #
-class PrependingBuffer extends Stream
+class PrependingBuffer extends ForwardingStream
   constructor: (preamble) ->
+    super
     @preamble = if typeof preamble is 'function' then preamble else -> preamble.toString()
-
-    @on 'pipe', (src) =>
-      src.on 'data', (args...) => @write args...
-      src.on 'end',  (args...) => @end args...
 
   write: (chunk) ->
     @emit 'data', (@preamble() + chunk)
-
-  end: (args...) ->
-    if args.length > 0
-      @write args...
-
-    @emit 'end'
-
-
-# **ForwardingStream** simply pushes events through it. It can act like
-# an aggregator since any number of streams may call 'pipe' on it.
-#
-class ForwardingStream extends Stream
-  constructor: ->
-    @on 'pipe', (src) =>
-      src.on 'data', (args...) => @write args...
-      src.on 'end',  (args...) => @end args...
-
-  write: (chunk) ->
-    @emit 'data', chunk
-
-  end: (args...) ->
-    if args.length > 0
-      @write args...
-
-    @emit 'end'
 
 
 exports.LineBuffer       = LineBuffer
