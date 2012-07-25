@@ -4,6 +4,7 @@ var norman = require('..');
 
 var procfile = process.argv[2] || 'Procfile';
 
+// TODO: mimic Foreman...
 norman.createServer(procfile, function(server) {
   server.spawn();
 });

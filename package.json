@@ -6,12 +6,12 @@
 , "dependencies" :
   { "async" : ">= 0.1.0"
   , "ansi-color" : "0.2.1"
-  , "strftime": "0.4.x"
+  , "coffee-script" : ">= 1.1.0"
   , "sprintf" : "0.1.x"
+  , "strftime": "0.4.x"
   }
 , "devDependencies" :
-  { "coffee-script" : ">= 1.1.0"
-  , "nodeunit" : ">= 0.6.0"
+  { "nodeunit" : ">= 0.6.0"
   }
 , "scripts": { "test": "cake test" }
 }
