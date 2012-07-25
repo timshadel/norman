@@ -18,7 +18,8 @@ class ForwardingStream extends Stream
     if args.length > 0
       @write args...
 
-    @ended()
+    process.nextTick =>
+      @ended()
 
 
 # **LineBuffer** wraps any readable stream and buffers data until
@@ -64,8 +65,23 @@ class PrependingBuffer extends ForwardingStream
   write: (chunk) ->
     @emit 'data', (@preamble() + chunk)
 
+# **PrependingBuffer** adds the output of a function to the beginning of
+# each data segment emitted by the underlying stream.
+#
+class CapturingStream extends ForwardingStream
+  constructor: (preamble) ->
+    super
+    @_capture = ""
+
+  write: (chunk) ->
+    @_capture += chunk
+    super chunk
+
+  ended: ->
+    @emit 'captured', @_capture
+    super
 
 exports.LineBuffer       = LineBuffer
 exports.PrependingBuffer = PrependingBuffer
 exports.ForwardingStream = ForwardingStream
-
+exports.CapturingStream  = CapturingStream

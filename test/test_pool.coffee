@@ -1,6 +1,6 @@
 http = require 'http'
 
-{createPool} = require '../lib/pool'
+{createPool} = require '../src/pool'
 
 {setupFixtures} = require './fixtures'
 exports.setUp = setupFixtures
@@ -23,12 +23,16 @@ exports.testSpawnMultiple = (test) ->
   test.expect 2
 
   pool = createPool 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example", concurrency: 2
+  waiting = ['ticker.1', 'ticker.2']
   pool.on 'process:spawn', (process) ->
-    test.ok process.name in ['ticker.1', 'ticker.2']
-  pool.spawn()
+    test.ok process.name in waiting
+    index = waiting.indexOf(process.name)
+    waiting.splice(index, 1)
+    if waiting.length is 0
+      pool.kill ->
+        test.done()
 
-  pool.kill ->
-    test.done()
+  pool.spawn()
 
 exports.testKill = (test) ->
   test.expect 1

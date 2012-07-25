@@ -1,4 +1,4 @@
-{parseProcfile} = require '../lib/procfile'
+{parseProcfile} = require '../src/procfile'
 
 {setupFixtures} = require './fixtures'
 exports.setUp = setupFixtures

@@ -1,6 +1,8 @@
 http = require 'http'
+testProcess = process
 
-{createProcess} = require '../lib/process'
+{createProcess}   = require '../src/process'
+{CapturingStream} = require '../src/streams'
 
 {setupFixtures} = require './fixtures'
 exports.setUp = setupFixtures
@@ -24,14 +26,17 @@ exports.testProcessName = (test) ->
 
   procName = 'namer.7'
   process = createProcess procName, "echo $PS", {pad: 10}
-  process.spawn()
+  capture = new CapturingStream()
+  process.out.pipe capture
 
-  process.out.on 'data', (data) ->
-    output = data.toString().trim()
+  capture.on 'captured', (output) ->
+    output  = output.toString().trim()
     matcher = "[0-9:]{8} #{procName} *| #{procName}"
-    test.ok output.match(matcher)
-    process.kill ->
-      test.done()
+    match   = output.match(matcher)
+    test.ok match
+    test.done()
+
+  process.spawn()
 
 exports.testKill = (test) ->
   test.expect 1

@@ -15,6 +15,11 @@ class Process extends EventEmitter
     @pad   = options.pad ? 6
     @color = options.color
 
+    format = "%-#{@pad}s"
+    message = "#{strftime("%H:%M:%S")} #{sprintf(format, @name)} | "
+    message = color(message, @color) if @color?
+    @out = new PrependingBuffer message
+
   spawn: ->
     env = {}
     for key, value of process.env
@@ -24,12 +29,6 @@ class Process extends EventEmitter
     env['PS']   = @name
 
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd, stdio: 'pipe'}
-
-    format = "%-#{@pad}s"
-    message = "#{strftime("%H:%M:%S")} #{sprintf(format, @name)} | "
-    message = color(message, @color) if @color?
-    @out = new PrependingBuffer message
-
     @child.stdout.pipe(new LineBuffer()).pipe @out
     @child.stderr.pipe(new LineBuffer()).pipe @out
 
