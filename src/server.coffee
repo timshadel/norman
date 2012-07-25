@@ -11,6 +11,7 @@ class Server
     parseProcfile @procfile, (err, details) =>
       return callback(err) if err
       @formation = createFormation details, {@cwd}
+      @formation.out.pipe process.stdout, end: true
       @formation.spawn()
       callback
 

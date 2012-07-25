@@ -61,5 +61,26 @@ class PrependingBuffer extends Stream
     @emit 'end'
 
 
+# **ForwardingStream** simply pushes events through it. It can act like
+# an aggregator since any number of streams may call 'pipe' on it.
+#
+class ForwardingStream extends Stream
+  constructor: ->
+    @on 'pipe', (src) =>
+      src.on 'data', (args...) => @write args...
+      src.on 'end',  (args...) => @end args...
+
+  write: (chunk) ->
+    @emit 'data', chunk
+
+  end: (args...) ->
+    if args.length > 0
+      @write args...
+
+    @emit 'end'
+
+
 exports.LineBuffer       = LineBuffer
 exports.PrependingBuffer = PrependingBuffer
+exports.ForwardingStream = ForwardingStream
+

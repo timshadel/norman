@@ -1,8 +1,9 @@
 {readFile} = require 'fs'
 {dirname}  = require 'path'
 
-{parseProcfile} = require './procfile'
-{createPool}    = require './pool'
+{parseProcfile}    = require './procfile'
+{createPool}       = require './pool'
+{ForwardingStream} = require './streams'
 
 class Formation
   @colors = [ "cyan", "yellow", "green", "magenta", "red", "blue", "cyan+bold", "yellow+bold",
@@ -10,6 +11,7 @@ class Formation
 
   constructor: (details, options) ->
     @pools = {}
+    @out = new ForwardingStream
 
     max = 6
     count = 0
@@ -28,10 +30,8 @@ class Formation
 
   spawn: ->
     for name, pool of @pools
-      # TODO: push output handling down to the pool, and aggregate them here
-      #       the Server should push to STDOUT, not the formation
-      pool.on 'process:spawn', (proc) ->
-        proc.out.pipe process.stdout, end: false
+      pool.on 'pool:ready', =>
+        pool.out.pipe @out, end: false
 
       pool.spawn()
 
