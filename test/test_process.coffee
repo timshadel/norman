@@ -64,10 +64,12 @@ exports.testSpawnWeb = (test) ->
 
   process = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
   process.timeout = 3000
-  process.spawn()
-  test.ok process.port
 
   process.on 'ready', ->
+    test.ok process.port
+    process.child.on 'exit', ->
+      test.done()
+
     req = http.request host: '127.0.0.1', port: process.port, (res) ->
       test.same 200, res.statusCode
       process.kill()
@@ -77,8 +79,8 @@ exports.testSpawnWeb = (test) ->
     test.ifError err
     process.kill()
 
-  process.child.on 'exit', ->
-    test.done()
+  process.spawn()
+
 
 exports.testSpawnTimeout = (test) ->
   test.expect 1

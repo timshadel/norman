@@ -9,29 +9,19 @@ class Pool extends EventEmitter
 
   constructor: (@name, @command, options = {}) ->
     @concurrency = options.concurrency ? 1
-    @out = new ForwardingStream
+    @output = new ForwardingStream
 
     @processes = []
     for instance in [1..@concurrency]
       proc = createProcess "#{@name}.#{instance}", @command, options
-      proc.out.pipe @out, end: false
+      proc.out.pipe @output, end: false
       @processes.push proc
 
-  spawn: ->
-    waiting = []
-    spawned = false
-    for process in @processes
-      waiting.push process
-      process.on 'ready', ->
-        index = waiting.indexOf(process)
-        waiting.splice(index, 1)
-        @emit 'pool:ready' if spawned and waiting.length is 0
-        
+  spawn: (callback) ->
+    spawn = (process, cb) ->
+      process.on 'ready', cb
       process.spawn()
-      @emit 'process:spawn', process
-
-    spawned = true
-    @emit 'pool:ready' if waiting.length is 0
+    async.forEach @processes, spawn, callback
 
   kill: (callback) ->
     kill = (process, cb) -> process.kill cb
