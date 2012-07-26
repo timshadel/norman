@@ -1,7 +1,6 @@
 {readFile} = require 'fs'
 {dirname}  = require 'path'
 
-{parseProcfile}    = require './procfile'
 {createPool}       = require './pool'
 {ForwardingStream} = require './streams'
 
@@ -13,11 +12,8 @@ class Formation
     @pools = {}
     @out = new ForwardingStream
 
-    max = 6
-    count = 0
-    for name, command of details
-      max = name.length if name.length > max
-      count++
+    process_names = Object.keys details
+    max = Math.max.apply @, process_names.map (e) -> e.length
 
     # 2 for '.1' or '.9', assuming nobody uses more than 9 in dev
     options.pad = max + 2
