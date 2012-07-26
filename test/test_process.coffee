@@ -1,5 +1,4 @@
 http = require 'http'
-testProcess = process
 
 {createProcess}   = require '../src/process'
 {CapturingStream} = require '../src/streams'
@@ -7,27 +6,17 @@ testProcess = process
 {setupFixtures} = require './fixtures'
 exports.setUp = setupFixtures
 
-spawnTicker = ->
-  process = createProcess 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
-  process.spawn()
-  process
-
-exports.testSpawn = (test) ->
-  test.expect 0
-
-  process = createProcess 'ticker', "ruby ./ticker", cwd: "#{__dirname}/fixtures/example"
-  process.spawn()
-
-  process.kill ->
-    test.done()
+spawnSimple = (callback) ->
+  myProc = createProcess 'simple', "ruby ./simple", cwd: "#{__dirname}/fixtures/example"
+  myProc.spawn -> callback(myProc)
 
 exports.testProcessName = (test) ->
   test.expect 1
 
   procName = 'namer.7'
-  process = createProcess procName, "echo $PS", {pad: 10}
+  myProc = createProcess procName, "echo $PS", {pad: 10}
   capture = new CapturingStream()
-  process.output.pipe capture
+  myProc.output.pipe capture
 
   capture.on 'captured', (output) ->
     output  = output.toString().trim()
@@ -36,62 +25,63 @@ exports.testProcessName = (test) ->
     test.ok match
     test.done()
 
-  process.spawn()
+  myProc.spawn()
 
 exports.testKill = (test) ->
   test.expect 1
-  process = spawnTicker()
-  process.kill ->
-    test.ok true
-    test.done()
+  spawnSimple (myProc) ->
+    myProc.kill ->
+      test.ok true
+      test.done()
 
 exports.testTerminate = (test) ->
   test.expect 1
-  process = spawnTicker()
-  process.terminate ->
-    test.ok true
-    test.done()
+  spawnSimple (myProc) ->
+    myProc.terminate ->
+      test.ok true
+      test.done()
 
 exports.testQuit = (test) ->
   test.expect 1
-  process = spawnTicker()
-  process.quit ->
-    test.ok true
-    test.done()
-
-exports.testSpawnWeb = (test) ->
-  test.expect 2
-
-  process = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
-  process.timeout = 3000
-
-  process.on 'ready', ->
-    test.ok process.port
-    process.child.on 'exit', ->
+  spawnSimple (myProc) ->
+    myProc.quit ->
+      test.ok true
       test.done()
 
-    req = http.request host: '127.0.0.1', port: process.port, (res) ->
-      test.same 200, res.statusCode
-      process.kill()
-    req.end()
+# exports.testSpawnWeb = (test) ->
+#   test.expect 2
 
-  process.on 'error', (err) ->
-    test.ifError err
-    process.kill()
+#   myProc = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
+#   myProc.timeout = 3000
 
-  process.spawn()
+#   myProc.on 'ready', ->
+#     test.ok myProc.port
+#     myProc.child.on 'exit', ->
+#       test.done()
+
+#     req = http.request host: '127.0.0.1', port: myProc.port, (res) ->
+#       test.same 200, res.statusCode
+#       myProc.kill()
+#     req.end()
+
+#   myProc.on 'error', (err) ->
+#     test.ifError err
+#     myProc.kill()
+
+#   myProc.spawn()
 
 
 exports.testSpawnTimeout = (test) ->
   test.expect 1
 
-  process = createProcess 'web', "sleep 3", cwd: "#{__dirname}/fixtures/app"
-  process.timeout = 1000
-  process.spawn()
+  myProc = createProcess 'web', "sleep 3", cwd: "#{__dirname}/fixtures/app"
+  myProc.timeout = 100
+  myProc.spawn (myProc) ->
+    test.ok false
+    myProc.kill ->
+      test.done()
 
-  process.on 'error', (err) ->
+  myProc.on 'error', (err) ->
     test.ok err
-    process.kill()
-
-  process.child.on 'exit', ->
-    test.done()
+    myProc.kill ->
+      test.done()

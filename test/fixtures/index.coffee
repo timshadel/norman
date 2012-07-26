@@ -26,3 +26,5 @@ bundleInstall = (gemfile, callback) ->
         callback(err)
     else
       callback err
+
+console.log "Fixtures", exports

@@ -13,7 +13,7 @@ class Process extends EventEmitter
     @color  = options.color
     @output = new NamedStream @name, @pad, @color
 
-  spawn: ->
+  spawn: (callback = ->) ->
     env = {}
     # TODO: load various ENVs?
     for key, value of process.env
@@ -26,9 +26,10 @@ class Process extends EventEmitter
     @child.stdout.pipe(new LineBuffer()).pipe @output
     @child.stderr.pipe(new LineBuffer()).pipe @output
 
-    @spawned()
+    @spawned(callback)
 
-  spawned: ->
+  spawned: (callback) ->
+    callback(this)
     @emit 'ready'
 
   kill: (callback) ->
@@ -55,15 +56,16 @@ class Process extends EventEmitter
 class WebProcess extends Process
   timeout: 30000
 
-  spawn: ->
+  spawn: (callback) ->
     @port = getOpenPort()
-    super
+    super callback
 
-  spawned: ->
+  spawned: (callback) ->
     tryConnect @port, @timeout, (err) =>
       if err
         @emit 'error', err
       else
+        callback(this)
         @emit 'ready'
 
 
