@@ -1,4 +1,7 @@
 {Stream} = require 'stream'
+strftime = require 'strftime'
+sprintf  = require('sprintf').sprintf
+color    = require("ansi-color").set
 
 # **ForwardingStream** simply pushes events through it. It can act like
 # an aggregator since any number of streams may call 'pipe' on it.
@@ -65,11 +68,27 @@ class PrependingBuffer extends ForwardingStream
   write: (chunk) ->
     @emit 'data', (@preamble() + chunk)
 
-# **PrependingBuffer** adds the output of a function to the beginning of
+
+# **NamedStream** adds the output of a function to the beginning of
 # each data segment emitted by the underlying stream.
 #
+class NamedStream extends PrependingBuffer
+  constructor: (@name, @nameFieldWidth, @color) ->
+    super @nameHeader
+
+  nameHeader: ->
+    format = "%-#{@nameFieldWidth}s"
+    nameHeader = "#{strftime("%H:%M:%S")} #{sprintf(format, @name)} | "
+    nameHeader = color(nameHeader, @color) if @color?
+    nameHeader
+
+
+# **CapturingStream** acts like `tee` by pushing the data both to the
+# destination stream, as well as capturing the output in a buffer. Used
+# for test cases.
+#
 class CapturingStream extends ForwardingStream
-  constructor: (preamble) ->
+  constructor: ->
     super
     @_capture = ""
 
@@ -78,10 +97,11 @@ class CapturingStream extends ForwardingStream
     super chunk
 
   ended: ->
-    @emit 'captured', @_capture
     super
+    @emit 'captured', @_capture
 
 exports.LineBuffer       = LineBuffer
 exports.PrependingBuffer = PrependingBuffer
 exports.ForwardingStream = ForwardingStream
 exports.CapturingStream  = CapturingStream
+exports.NamedStream      = NamedStream

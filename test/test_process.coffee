@@ -27,7 +27,7 @@ exports.testProcessName = (test) ->
   procName = 'namer.7'
   process = createProcess procName, "echo $PS", {pad: 10}
   capture = new CapturingStream()
-  process.out.pipe capture
+  process.output.pipe capture
 
   capture.on 'captured', (output) ->
     output  = output.toString().trim()

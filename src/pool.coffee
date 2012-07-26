@@ -14,7 +14,7 @@ class Pool extends EventEmitter
     @processes = []
     for instance in [1..@concurrency]
       proc = createProcess "#{@name}.#{instance}", @command, options
-      proc.out.pipe @output, end: false
+      proc.output.pipe @output, end: false
       @processes.push proc
 
   spawn: (callback) ->

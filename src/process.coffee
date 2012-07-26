@@ -1,27 +1,21 @@
 net      = require 'net'
-color    = require("ansi-color").set
-strftime = require 'strftime'
-sprintf  = require('sprintf').sprintf
 
 {EventEmitter} = require 'events'
 {spawn}        = require 'child_process'
 
-{LineBuffer, PrependingBuffer}   = require './streams'
+{LineBuffer, NamedStream}   = require './streams'
 
 class Process extends EventEmitter
 
   constructor: (@name, @command, options = {}) ->
-    @cwd   = options.cwd
-    @pad   = options.pad ? 6
-    @color = options.color
-
-    format = "%-#{@pad}s"
-    message = "#{strftime("%H:%M:%S")} #{sprintf(format, @name)} | "
-    message = color(message, @color) if @color?
-    @out = new PrependingBuffer message
+    @cwd    = options.cwd
+    @pad    = options.pad ? 6
+    @color  = options.color
+    @output = new NamedStream @name, @pad, @color
 
   spawn: ->
     env = {}
+    # TODO: load various ENVs?
     for key, value of process.env
       env[key] = value
 
@@ -29,8 +23,8 @@ class Process extends EventEmitter
     env['PS']   = @name
 
     @child = spawn '/bin/sh', ['-c', @command], {env, @cwd, stdio: 'pipe'}
-    @child.stdout.pipe(new LineBuffer()).pipe @out
-    @child.stderr.pipe(new LineBuffer()).pipe @out
+    @child.stdout.pipe(new LineBuffer()).pipe @output
+    @child.stderr.pipe(new LineBuffer()).pipe @output
 
     @spawned()
 
