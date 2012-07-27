@@ -25,7 +25,9 @@ class Pool extends EventEmitter
 
   stop: (callback) ->
     stop = (proc, cb) -> proc.stop cb
-    async.forEach @processes, stop, callback
+    async.forEach @processes, stop, =>
+      @output.end()
+      callback?()
 
 
 class WebPool extends Pool

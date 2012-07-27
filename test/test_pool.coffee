@@ -1,11 +1,10 @@
-http = require 'http'
-
-{createPool} = require '../src/pool'
-
-{setupFixtures} = require './fixtures'
-exports.setUp = setupFixtures
-
+http  = require 'http'
 async = require 'async'
+
+{createPool}      = require '../src/pool'
+{CapturingStream} = require '../src/streams'
+{setupFixtures}   = require './fixtures'
+exports.setUp     = setupFixtures
 
 spawnSimple = (callback) ->
   pool = createPool 'simple', "ruby ./simple", cwd: "#{__dirname}/fixtures/example"
@@ -18,6 +17,33 @@ exports.testSpawn = (test) ->
   pool.spawn ->
     pool.stop ->
       test.done()
+
+exports.testMultipleProcessOutputsKeptSeparate = (test) ->
+  test.expect 5
+
+  pool = createPool 'namer', "echo $PS",
+    cwd: "#{__dirname}/fixtures/example"
+    max: 1
+    concurrency: 2
+
+  capture = new CapturingStream()
+  pool.output.pipe capture
+
+  capture.on 'captured', (output) ->
+    lines = output.trim().split('\n')
+    names = []
+    for line in lines
+      matcher = "^[0-9:]{8} ([a-z.1-2]+) *\\| ([a-z.1-2]+)"
+      match = line.match(matcher)
+      test.ok match
+      test.same match[1], match[2]
+      names.push match[1]
+
+    test.deepEqual names.sort(), ['namer.1', 'namer.2']
+
+    test.done()
+
+  pool.spawn -> pool.stop()
 
 exports.testSpawnMultiple = (test) ->
   test.expect 5
@@ -47,6 +73,11 @@ exports.testWebPool = (test) ->
   test.expect 5
 
   pool = createPool 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app", concurrency: 2
+
+  pool.on 'error', (error) ->
+    console.log error
+    test.ok false
+    test.done()
 
   pool.spawn ->
     testRequest = (myProc, cb) ->

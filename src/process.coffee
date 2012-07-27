@@ -18,13 +18,13 @@ class Process extends EventEmitter
     @stdout.pipe @output
     @stderr.pipe @output
 
-    options.outFile = true
-    options.errFile = true
-    options.stdout = @stdout
-    options.stderr = @stderr
-    options.silent = true
-
-    @options = options
+    @options =
+      outFile: true
+      errfile: true
+      stdout: @stdout
+      stderr: @stderr
+      silent: true
+      __proto__: options
 
   spawn: (callback = ->) ->
     env = {}

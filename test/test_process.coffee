@@ -10,7 +10,7 @@ spawnSimple = (callback) ->
   myProc = createProcess 'simple', "ruby ./simple", cwd: "#{__dirname}/fixtures/example"
   myProc.spawn -> callback(myProc)
 
-exports.testProcessName = (test) ->
+exports.testProcessNameSentAsPS = (test) ->
   test.expect 1
 
   procName = 'namer.7'
