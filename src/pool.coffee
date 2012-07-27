@@ -23,17 +23,10 @@ class Pool extends EventEmitter
       proc.spawn()
     async.forEach @processes, spawn, callback
 
-  kill: (callback) ->
-    kill = (proc, cb) -> proc.kill cb
-    async.forEach @processes, kill, callback
+  stop: (callback) ->
+    stop = (proc, cb) -> proc.stop cb
+    async.forEach @processes, stop, callback
 
-  terminate: (callback) ->
-    terminate = (proc, cb) -> proc.terminate cb
-    async.forEach @processes, terminate, callback
-
-  quit: (callback) ->
-    quit = (proc, cb) -> proc.quit cb
-    async.forEach @processes, quit, callback
 
 class WebPool extends Pool
 

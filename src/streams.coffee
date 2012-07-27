@@ -24,6 +24,13 @@ class ForwardingStream extends Stream
     process.nextTick =>
       @ended()
 
+  destroySoon: ->
+    @on 'end', => @destroy()
+    @end()
+
+  destroy: ->
+    @emit 'close'
+
 
 # **LineBuffer** wraps any readable stream and buffers data until
 # it encounters a `\n` line break. It will emit `data` events as lines

@@ -14,7 +14,7 @@ exports.testProcessName = (test) ->
   test.expect 1
 
   procName = 'namer.7'
-  myProc = createProcess procName, "echo $PS", {pad: 10}
+  myProc = createProcess procName, "echo $PS", {pad: 10, max: 1}
   capture = new CapturingStream()
   myProc.output.pipe capture
 
@@ -27,48 +27,34 @@ exports.testProcessName = (test) ->
 
   myProc.spawn()
 
-exports.testKill = (test) ->
+exports.testStop = (test) ->
   test.expect 1
   spawnSimple (myProc) ->
-    myProc.kill ->
+    myProc.stop ->
       test.ok true
       test.done()
 
-exports.testTerminate = (test) ->
-  test.expect 1
-  spawnSimple (myProc) ->
-    myProc.terminate ->
-      test.ok true
+exports.testSpawnWeb = (test) ->
+  test.expect 2
+
+  myProc = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
+  myProc.timeout = 3000
+
+  myProc.on 'ready', ->
+    test.ok myProc.port
+    myProc.child.on 'exit', ->
       test.done()
 
-exports.testQuit = (test) ->
-  test.expect 1
-  spawnSimple (myProc) ->
-    myProc.quit ->
-      test.ok true
-      test.done()
+    req = http.request host: '127.0.0.1', port: myProc.port, (res) ->
+      test.same 200, res.statusCode
+      myProc.stop()
+    req.end()
 
-# exports.testSpawnWeb = (test) ->
-#   test.expect 2
+  myProc.on 'error', (err) ->
+    test.ifError err
+    myProc.stop()
 
-#   myProc = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
-#   myProc.timeout = 3000
-
-#   myProc.on 'ready', ->
-#     test.ok myProc.port
-#     myProc.child.on 'exit', ->
-#       test.done()
-
-#     req = http.request host: '127.0.0.1', port: myProc.port, (res) ->
-#       test.same 200, res.statusCode
-#       myProc.kill()
-#     req.end()
-
-#   myProc.on 'error', (err) ->
-#     test.ifError err
-#     myProc.kill()
-
-#   myProc.spawn()
+  myProc.spawn()
 
 
 exports.testSpawnTimeout = (test) ->
@@ -78,10 +64,10 @@ exports.testSpawnTimeout = (test) ->
   myProc.timeout = 100
   myProc.spawn (myProc) ->
     test.ok false
-    myProc.kill ->
+    myProc.stop ->
       test.done()
 
   myProc.on 'error', (err) ->
     test.ok err
-    myProc.kill ->
+    myProc.stop ->
       test.done()

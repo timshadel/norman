@@ -1,7 +1,7 @@
 net      = require 'net'
 
 {EventEmitter} = require 'events'
-{spawn}        = require 'child_process'
+{Monitor}      = require 'forever-monitor'
 
 {LineBuffer, NamedStream}   = require './streams'
 
@@ -11,10 +11,24 @@ class Process extends EventEmitter
     @cwd    = options.cwd
     @pad    = options.pad ? 6
     @color  = options.color
+    @stdout = new LineBuffer()
+    @stderr = new LineBuffer()
     @output = new NamedStream @name, @pad, @color
+
+    @stdout.pipe @output
+    @stderr.pipe @output
+
+    options.outFile = true
+    options.errFile = true
+    options.stdout = @stdout
+    options.stderr = @stderr
+    options.silent = true
+
+    @options = options
 
   spawn: (callback = ->) ->
     env = {}
+    @options.env = env
     # TODO: load various ENVs?
     for key, value of process.env
       env[key] = value
@@ -22,9 +36,8 @@ class Process extends EventEmitter
     env['PORT'] = @port if @port
     env['PS']   = @name
 
-    @child = spawn '/bin/sh', ['-c', @command], {env, @cwd, stdio: 'pipe'}
-    @child.stdout.pipe(new LineBuffer()).pipe @output
-    @child.stderr.pipe(new LineBuffer()).pipe @output
+    @child = new Monitor(['/bin/sh', '-c', @command], @options)
+    @child.start()
 
     @spawned(callback)
 
@@ -32,26 +45,13 @@ class Process extends EventEmitter
     callback(this)
     @emit 'ready'
 
-  kill: (callback) ->
+  stop: (callback) ->
     if @child
-      @child.once 'exit', callback if callback
-      @child.kill 'SIGKILL'
+      @child.once 'stop', callback if callback
+      @child.stop()
     else
       callback?()
 
-  terminate: (callback) ->
-    if @child
-      @child.once 'exit', callback if callback
-      @child.kill 'SIGTERM'
-    else
-      callback?()
-
-  quit: (callback) ->
-    if @child
-      @child.once 'exit', callback if callback
-      @child.kill 'SIGQUIT'
-    else
-      callback?()
 
 class WebProcess extends Process
   timeout: 30000

@@ -9,6 +9,7 @@
   , "coffee-script" : ">= 1.1.0"
   , "sprintf" : "0.1.x"
   , "strftime": "0.4.x"
+  , "forever-monitor": "1.0.x"
   }
 , "devDependencies" :
   { "nodeunit" : ">= 0.6.0"
