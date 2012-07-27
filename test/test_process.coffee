@@ -40,7 +40,11 @@ exports.testSpawnWeb = (test) ->
   myProc = createProcess 'web', "bundle exec thin start -p $PORT", cwd: "#{__dirname}/fixtures/app"
   myProc.timeout = 3000
 
-  myProc.on 'ready', ->
+  myProc.on 'error', (err) ->
+    test.ifError err
+    myProc.stop()
+
+  myProc.spawn ->
     test.ok myProc.port
     myProc.child.on 'exit', ->
       test.done()
@@ -49,12 +53,6 @@ exports.testSpawnWeb = (test) ->
       test.same 200, res.statusCode
       myProc.stop()
     req.end()
-
-  myProc.on 'error', (err) ->
-    test.ifError err
-    myProc.stop()
-
-  myProc.spawn()
 
 
 exports.testSpawnTimeout = (test) ->

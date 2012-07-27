@@ -4,6 +4,7 @@
 {ForwardingStream} = require './streams'
 
 async = require 'async'
+call  = require './call'
 
 class Pool extends EventEmitter
 
@@ -18,14 +19,10 @@ class Pool extends EventEmitter
       @processes.push proc
 
   spawn: (callback) ->
-    spawn = (proc, cb) ->
-      proc.on 'ready', cb
-      proc.spawn()
-    async.forEach @processes, spawn, callback
+    async.forEach @processes, call("spawn"), callback
 
   stop: (callback) ->
-    stop = (proc, cb) -> proc.stop cb
-    async.forEach @processes, stop, =>
+    async.forEach @processes, call("stop"), =>
       @output.end()
       callback?()
 

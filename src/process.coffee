@@ -26,7 +26,7 @@ class Process extends EventEmitter
       silent: true
       __proto__: options
 
-  spawn: (callback = ->) ->
+  spawn: (callback) ->
     env = {}
     @options.env = env
     # TODO: load various ENVs?
@@ -42,7 +42,7 @@ class Process extends EventEmitter
     @spawned(callback)
 
   spawned: (callback) ->
-    callback(this)
+    callback?()
     @emit 'ready'
 
   stop: (callback) ->
@@ -65,7 +65,7 @@ class WebProcess extends Process
       if err
         @emit 'error', err
       else
-        callback(this)
+        callback?()
         @emit 'ready'
 
 
@@ -79,7 +79,7 @@ tryConnect = (port, timeout, callback) ->
   socket.on 'connect', ->
     clearTimeout timeoutId
     socket.destroy()
-    callback()
+    callback?()
 
   socket.on 'error', (err) ->
     if timedOut
