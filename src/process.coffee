@@ -17,6 +17,7 @@ class Process extends EventEmitter
 
     @stdout.pipe @output
     @stderr.pipe @output
+    @output.pipe options.output, end: false if options?.output?
 
     @options =
       outFile: true
@@ -42,12 +43,16 @@ class Process extends EventEmitter
     @spawned(callback)
 
   spawned: (callback) ->
+    @child.on 'exit', =>
+      @output.end()
+      @emit 'stop'
+
     callback?()
     @emit 'ready'
 
   stop: (callback) ->
     if @child
-      @child.once 'stop', callback if callback
+      @child.once 'stop', callback ? ->
       @child.stop()
     else
       callback?()

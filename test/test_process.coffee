@@ -14,12 +14,11 @@ exports.testProcessNameSentAsPS = (test) ->
   test.expect 1
 
   procName = 'namer.7'
-  myProc = createProcess procName, "echo $PS", {pad: 10, max: 1}
   capture = new CapturingStream()
-  myProc.output.pipe capture
+  myProc = createProcess procName, "echo $PS", {pad: 10, max: 1, output: capture}
 
-  capture.on 'captured', (output) ->
-    output  = output.toString().trim()
+  myProc.on 'stop', ->
+    output  = capture.output.toString().trim()
     matcher = "[0-9:]{8} #{procName} *| #{procName}"
     match   = output.match(matcher)
     test.ok match

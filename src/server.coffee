@@ -11,8 +11,7 @@ class Server
   spawn: (callback = ->) ->
     parseProcfile @procfile, (err, details) =>
       return callback(err) if err
-      @formation = createFormation details, {@cwd}
-      @formation.output.pipe process.stdout, end: true
+      @formation = createFormation details, {@cwd, output: process.stdout}
       @formation.spawn callback
 
 exports.createServer = (args...) ->

@@ -9,22 +9,13 @@ call  = require './call'
 class Pool extends EventEmitter
 
   constructor: (@name, @command, options = {}) ->
-    @concurrency = options.concurrency ? 1
-    @output = new ForwardingStream
-
-    @processes = []
-    for instance in [1..@concurrency]
-      proc = createProcess "#{@name}.#{instance}", @command, options
-      proc.output.pipe @output, end: false
-      @processes.push proc
+    @processes = [1..(options.concurrency ? 1)].map (instance) => createProcess "#{@name}.#{instance}", @command, options
 
   spawn: (callback) ->
     async.forEach @processes, call("spawn"), callback
 
   stop: (callback) ->
-    async.forEach @processes, call("stop"), =>
-      @output.end()
-      callback?()
+    async.forEach @processes, call("stop"), callback
 
 
 class WebPool extends Pool

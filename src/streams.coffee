@@ -97,15 +97,15 @@ class NamedStream extends PrependingBuffer
 class CapturingStream extends ForwardingStream
   constructor: ->
     super
-    @_capture = ""
+    @output = ""
 
   write: (chunk) ->
-    @_capture += chunk
+    @output += chunk
     super chunk
 
   ended: ->
     super
-    @emit 'captured', @_capture
+    @emit 'captured', @output
 
 exports.LineBuffer       = LineBuffer
 exports.PrependingBuffer = PrependingBuffer

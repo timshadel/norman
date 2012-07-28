@@ -5,6 +5,7 @@
 {ForwardingStream} = require './streams'
 
 async = require 'async'
+call  = require './call'
 
 class Formation
   @colors = [ "cyan", "yellow", "green", "magenta", "red", "blue", "cyan+bold", "yellow+bold",
@@ -12,7 +13,6 @@ class Formation
 
   constructor: (details, options) ->
     @pools = {}
-    @output = new ForwardingStream
 
     process_names = Object.keys details
     max = Math.max.apply @, process_names.map (e) -> e.length
@@ -25,8 +25,7 @@ class Formation
       @pools[name] = createPool name, command, options
 
   spawn: (callback) ->
-    spawn = (pool, cb) => pool.output.pipe @output, end: false; pool.spawn cb
-    async.forEach (pool for name, pool of @pools), spawn, callback
+    async.forEach @pools, call("spawn"), callback
 
 exports.createFormation = (args...) ->
   new Formation args...
