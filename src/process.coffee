@@ -1,29 +1,18 @@
-net      = require 'net'
-
+net            = require 'net'
 {EventEmitter} = require 'events'
 {Monitor}      = require 'forever-monitor'
 
-{LineBuffer, NamedStream}   = require './streams'
-
 class Process extends EventEmitter
 
-  constructor: (@name, @command, options = {}) ->
+  constructor: (@name, @command, @output, options = {}) ->
     @cwd    = options.cwd
-    @pad    = options.pad ? 6
-    @color  = options.color
-    @stdout = new LineBuffer()
-    @stderr = new LineBuffer()
-    @output = new NamedStream @name, @pad, @color
 
-    @stdout.pipe @output
-    @stderr.pipe @output
-    @output.pipe options.output, end: false if options?.output?
-
+    # Setup options known to forever
     @options =
       outFile: true
       errfile: true
-      stdout: @stdout
-      stderr: @stderr
+      stdout: @output.stdout
+      stderr: @output.stderr
       silent: true
       __proto__: options
 
@@ -45,7 +34,7 @@ class Process extends EventEmitter
   spawned: (callback) ->
     @child.on 'exit', =>
       @output.end()
-      @emit 'stop'
+      process.nextTick => @emit 'stop'
 
     callback?()
     @emit 'ready'
@@ -107,8 +96,14 @@ getOpenPort = ->
   server.close()
   port
 
-exports.createProcess = (name, args...) ->
+
+##
+# Public interface
+exports.createProcess = (name, command, options) ->
+  {ProcessOutputStream} = require './streams'
+  process_output = new ProcessOutputStream name, options.pad ? 6, options.color?(), options.output
+
   if name.match /^web/
-    new WebProcess name, args...
+    new WebProcess name, command, process_output, options
   else
-    new Process name, args...
+    new Process name, command, process_output, options

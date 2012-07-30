@@ -1,15 +1,13 @@
-{createProcess} = require './process'
-
-{EventEmitter}     = require 'events'
-{ForwardingStream} = require './streams'
+{EventEmitter}        = require 'events'
+{createProcess}       = require './process'
 
 async = require 'async'
 call  = require './call'
 
 class Pool extends EventEmitter
 
-  constructor: (@name, @command, options = {}) ->
-    @processes = [1..(options.concurrency ? 1)].map (instance) => createProcess "#{@name}.#{instance}", @command, options
+  constructor: (@name, command, options = {}) ->
+    @processes = [1..(options.concurrency ? 1)].map (instance) => createProcess  "#{@name}.#{instance}", command, options
 
   spawn: (callback) ->
     async.forEach @processes, call("spawn"), callback

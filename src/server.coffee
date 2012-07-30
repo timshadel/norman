@@ -8,11 +8,11 @@ class Server
   constructor: (@procfile) ->
     @cwd = dirname @procfile
 
-  spawn: (callback = ->) ->
+  spawn: (callback) ->
     parseProcfile @procfile, (err, details) =>
-      return callback(err) if err
+      return callback?(err) if err
       @formation = createFormation details, {@cwd, output: process.stdout}
-      @formation.spawn callback
+      @formation.spawn callback ? ->
 
 exports.createServer = (args...) ->
   new Server args...

@@ -90,6 +90,22 @@ class NamedStream extends PrependingBuffer
     nameHeader
 
 
+# **ProcessOutputStream** merges a process's stdout and stdin into
+# a single, `\n` delimited stream of text with each line prepended
+# with a date and process name.
+#
+class ProcessOutputStream extends NamedStream
+  constructor: (@name, @nameFieldWidth, @color, @destination) ->
+    super @name, @nameFieldWidth, @color
+
+    @stdout = new LineBuffer()
+    @stderr = new LineBuffer()
+
+    @stdout.pipe @
+    @stderr.pipe @
+    @pipe @destination, end: false if destination?
+
+
 # **CapturingStream** acts like `tee` by pushing the data both to the
 # destination stream, as well as capturing the output in a buffer. Used
 # for test cases.
@@ -112,3 +128,4 @@ exports.PrependingBuffer = PrependingBuffer
 exports.ForwardingStream = ForwardingStream
 exports.CapturingStream  = CapturingStream
 exports.NamedStream      = NamedStream
+exports.ProcessOutputStream = ProcessOutputStream
